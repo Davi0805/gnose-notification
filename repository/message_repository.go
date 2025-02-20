@@ -1,42 +1,38 @@
 package repository
 
-import "github.com/Davi0805/gnose-notification/models"
+import (
+    "database/sql"
+    "github.com/Davi0805/gnose-notification/models"
+)
 
 type MessageRepository struct {
-    messages   []models.Message
-    saveChan   chan models.Message
-    getAllChan chan chan []models.Message
+    db *sql.DB
 }
 
-func NewMessageRepository() *MessageRepository {
-    repo := &MessageRepository{
-        messages:   make([]models.Message, 0),
-        saveChan:   make(chan models.Message),
-        getAllChan: make(chan chan []models.Message),
-    }
-    go repo.run()
-    return repo
-}
-
-func (r *MessageRepository) run() {
-    for {
-        select {
-        case message := <-r.saveChan:
-            r.messages = append(r.messages, message)
-        case replyChan := <-r.getAllChan:
-            replyChan <- r.messages
-        }
-    }
+func NewMessageRepository(db *sql.DB) *MessageRepository {
+    return &MessageRepository{db: db}
 }
 
 func (r *MessageRepository) Save(message models.Message) error {
-    r.saveChan <- message
-    return nil
+    _, err := r.db.Exec("INSERT INTO messages (timestamp, content, company_id, user_id, service) VALUES ($1, $2, $3, $4, $5)",
+        message.Timestamp, message.Content, message.CompanyId, message.UserId, message.Service)
+    return err
 }
 
 func (r *MessageRepository) GetAll() ([]models.Message, error) {
-    replyChan := make(chan []models.Message)
-    r.getAllChan <- replyChan
-    messages := <-replyChan
+    rows, err := r.db.Query("SELECT id, timestamp, content, company_id, user_id, service FROM messages")
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    var messages []models.Message
+    for rows.Next() {
+        var message models.Message
+        if err := rows.Scan(&message.ID, &message.Timestamp, &message.Content, &message.CompanyId, &message.UserId, &message.Service); err != nil {
+            return nil, err
+        }
+        messages = append(messages, message)
+    }
     return messages, nil
 }
