@@ -126,7 +126,7 @@ func (s *RedisService) ConsumeMessages(ctx context.Context) {
                 }
 
                 var msg models.Message
-                msg.ID = message.ID
+                msg.Timestamp = message.ID // ID do REDIS E A TIMESTAMP DA MENSAGEM
                 msg.Content = contentStr
                 msg.CompanyId = companyIdStr
                 msg.UserId = userIdStr
