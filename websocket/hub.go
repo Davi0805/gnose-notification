@@ -8,6 +8,7 @@ import (
 
 type Client struct {
     Conn *websocket.Conn
+    User *models.User
 }
 
 type Hub struct {
