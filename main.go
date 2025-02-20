@@ -3,7 +3,8 @@ package main
 import (
     "context"
     "log"
-
+    "os"
+    "fmt"
     "github.com/gofiber/fiber/v2"
     "github.com/gofiber/websocket/v2"
     "github.com/Davi0805/gnose-notification/repository"
@@ -16,8 +17,25 @@ import (
 func main() {
     app := fiber.New()
 
+    // POSTGRES CREDENTIALS
+    dbHost := os.Getenv("DB_HOST")
+    dbPort := os.Getenv("DB_PORT")
+    dbUser := os.Getenv("DB_USER")
+    dbPassword := os.Getenv("DB_PASSWORD")
+    dbName := os.Getenv("DB_NAME")
+
+    // ! SE N ME ENGANO EM C sprintf n e memory safe mas aq n deve ter problema
+    dataSource := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=require",
+        dbHost, dbPort, dbUser, dbPassword, dbName)
+
     // INIT DAS DEPENDENCIAS
-    repo := repository.NewMessageRepository()
+    db, err := repository.NewPostgresDB(dataSource)
+    if err != nil {
+        log.Fatalf("Falha ao conectar ao db: %v", err)
+    }
+    defer db.Close()
+
+    repo := repository.NewMessageRepository(db)
     service := service.NewMessageService(repo)
     hub := ws.NewHub(service)
     controller := controllers.NewWebSocketController(hub)
