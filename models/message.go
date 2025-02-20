@@ -3,10 +3,11 @@ package models
 import "encoding/json"
 
 type Message struct {
-    ID      string `json:"id"`
+    ID      string `json:"timestamp"`
     Content string `json:"content"`
     CompanyId string `json:companyId`
     UserId string `json:userId`
+    Service string `json:service`
 }
 
 // UnmarshalBinary implements the encoding.BinaryUnmarshaler interface.

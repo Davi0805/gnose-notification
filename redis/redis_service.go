@@ -60,19 +60,22 @@ func (s *RedisService) ConsumeMessages(ctx context.Context) {
             continue
         }
 
+        // TODO: REFAC
         for _, stream := range streams {
             for _, message := range stream.Messages {
-                id, ok := message.Values["id"]
-                if !ok {
-                    log.Println("Erro ao deserializar: id field nao encontrado")
-                    continue
-                }
+                //id, ok := message.Values["id"]
+                //if !ok {
+                //    log.Println("Erro ao deserializar: id field nao encontrado")
+                //    continue
+                //}
+//
+                //idStr, ok := id.(string)
+                //if !ok {
+                //    log.Println("Erro ao deserializar: id field nao e uma string")
+                //    continue
+                //}
 
-                idStr, ok := id.(string)
-                if !ok {
-                    log.Println("Erro ao deserializar: id field nao e uma string")
-                    continue
-                }
+
 
                 content, ok := message.Values["content"]
                 if !ok {
@@ -110,11 +113,24 @@ func (s *RedisService) ConsumeMessages(ctx context.Context) {
                     continue
                 }
 
+                service, ok := message.Values["service"]
+                if !ok {
+                    log.Println("Erro: service field nao foi encontrado")
+                    continue
+                }
+
+                serviceStr, ok := service.(string)
+                if !ok {
+                    log.Println("Erro: service field nao e uma string")
+                    continue
+                }
+
                 var msg models.Message
-                msg.ID = idStr
+                msg.ID = message.ID
                 msg.Content = contentStr
                 msg.CompanyId = companyIdStr
                 msg.UserId = userIdStr
+                msg.Service = serviceStr
                 s.hub.Broadcast(msg)
             }
         }
