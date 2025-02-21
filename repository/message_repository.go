@@ -3,6 +3,8 @@ package repository
 import (
     "database/sql"
     "github.com/Davi0805/gnose-notification/models"
+    "fmt"
+    "strings"
 )
 
 type MessageRepository struct {
@@ -19,8 +21,21 @@ func (r *MessageRepository) Save(message models.Message) error {
     return err
 }
 
-func (r *MessageRepository) GetAll() ([]models.Message, error) {
-    rows, err := r.db.Query("SELECT id, timestamp, content, company_id, user_id, service FROM messages")
+func (r *MessageRepository) GetAll(companyIds []int64) ([]models.Message, error) {
+    if len(companyIds) == 0 {
+        return nil, nil
+    }
+
+    // Create placeholders for the query
+    placeholders := make([]string, len(companyIds))
+    args := make([]interface{}, len(companyIds))
+    for i, id := range companyIds {
+        placeholders[i] = fmt.Sprintf("$%d", i+1)
+        args[i] = id
+    }
+
+    query := fmt.Sprintf("SELECT id, timestamp, content, company_id, user_id, service FROM messages WHERE company_id IN (%s)", strings.Join(placeholders, ","))
+    rows, err := r.db.Query(query, args...)
     if err != nil {
         return nil, err
     }
