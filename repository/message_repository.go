@@ -36,3 +36,21 @@ func (r *MessageRepository) GetAll() ([]models.Message, error) {
     }
     return messages, nil
 }
+
+func (r *MessageRepository) GetByCompanyId(companyId int64) ([]models.Message, error) {
+    rows, err := r.db.Query("SELECT id, timestamp, content, company_id, user_id, service FROM messages WHERE company_id = $1", companyId)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    var messages []models.Message
+    for rows.Next() {
+        var message models.Message
+        if err := rows.Scan(&message.ID, &message.Timestamp, &message.Content, &message.CompanyId, &message.UserId, &message.Service); err != nil {
+            return nil, err
+        }
+        messages = append(messages, message)
+    }
+    return messages, nil
+}
