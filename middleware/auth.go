@@ -44,12 +44,12 @@ func JWTMiddleware(redisClient *redis.Client) fiber.Handler {
         }
 
         ctx := context.Background()
-        exists, err := redisClient.Exists(ctx, tokenString).Result()
+/*         exists, err := redisClient.Exists(ctx, tokenString).Result()
         if err != nil || exists == 0 {
             return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"Erro": "Token invalido"})
-        }
+        } */
 
-        // TODO: REFATORAR E LIMPAR PARA APENAS 1 QUERY QUANDO JA ESTIVER ESTAVEL
+        // TODO: REFATORAR E LIMPAR
         // GET CREDENCIAIS DO REDIS
         jsonData, err := redisClient.Get(ctx, tokenString).Result()
         if err != nil {
