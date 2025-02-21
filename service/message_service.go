@@ -17,8 +17,8 @@ func (s *MessageService) SaveMessage(message models.Message) error {
     return s.repo.Save(message)
 }
 
-func (s *MessageService) GetAllMessages() ([]models.Message, error) {
-    return s.repo.GetAll()
+func (s *MessageService) GetAllMessages(companyIds []int64) ([]models.Message, error) {
+    return s.repo.GetAll(companyIds)
 }
 
 func (s *MessageService) GetMessagesByCompanyId(companyId int64) ([]models.Message, error) {
