@@ -46,6 +46,7 @@ func main() {
     service := service.NewMessageService(repo)
     hub := ws.NewHub(service)
     controller := controllers.NewWebSocketController(hub)
+    messageController := controllers.NewMessageController(service)
 
     // INICIA HUB DO WEB SOCKET
     go hub.Run()
@@ -58,7 +59,6 @@ func main() {
     }
     go redisService.ConsumeMessages(ctx)
 
-    // TODO: ADICIONAR AUTH
     // DECLARA ENDPOINT DO WS
     app.Use("/ws", middleware.JWTMiddleware(redisService.GetClient()), func(c *fiber.Ctx) error {
         if websocket.IsWebSocketUpgrade(c) {
@@ -69,6 +69,9 @@ func main() {
 
     // TODO: ROTAS HTTP COM NOTIFICACOES LIGADO A DB
     app.Get("/ws", controller.HandleWebSocket)
+    
+    app.Get("/messages", messageController.GetMessages)
+    app.Get("/messages/:companyId", messageController.GetMessagesByCompanyId)
 
     log.Fatal(app.Listen(":3000"))
 }
