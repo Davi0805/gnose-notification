@@ -14,6 +14,7 @@ import (
     "github.com/Davi0805/gnose-notification/controllers"
     "github.com/Davi0805/gnose-notification/middleware"
     "github.com/joho/godotenv"
+    redisv9 "github.com/redis/go-redis/v9"
 )
 
 func main() {
@@ -42,11 +43,25 @@ func main() {
     }
     defer db.Close()
 
+    // TODO: TALVEZ SUBSTITUIR POR MESMO CLIENTE USADO NO WS | TESTAR EM TESTE DE CARGA
+    redisAddr := os.Getenv("REDIS_ADDR")
+    if redisAddr == "" {
+        redisAddr = "localhost:6379"
+    }
+    redisPassword := os.Getenv("REDIS_PASSWORD")
+    redisClient := redisv9.NewClient(&redisv9.Options{
+        Addr:     redisAddr,
+        Password: redisPassword,
+        DB:       0,
+    })
+
+    authService := service.NewAuthService(redisClient)
+
     repo := repository.NewMessageRepository(db)
-    service := service.NewMessageService(repo)
-    hub := ws.NewHub(service)
+    messageService := service.NewMessageService(repo)
+    hub := ws.NewHub(messageService)
     controller := controllers.NewWebSocketController(hub)
-    messageController := controllers.NewMessageController(service)
+    messageController := controllers.NewMessageController(messageService, authService)
 
     // INICIA HUB DO WEB SOCKET
     go hub.Run()
