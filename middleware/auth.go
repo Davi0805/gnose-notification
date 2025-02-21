@@ -80,7 +80,7 @@ func JWTMiddleware(redisClient *redis.Client) fiber.Handler {
 
         // ENV VARIABLES
         c.Locals("userId", userId)
-        c.Locals("companyId", companyIds)
+        c.Locals("companyIds", companyIds)
 
         return c.Next()
     }
