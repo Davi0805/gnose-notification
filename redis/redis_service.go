@@ -136,3 +136,7 @@ func (s *RedisService) ConsumeMessages(ctx context.Context) {
         }
     }
 }
+
+func (r *RedisService) GetClient() *redis.Client {
+    return r.client
+}
